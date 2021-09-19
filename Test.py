@@ -64,31 +64,4 @@ def MoreStep2(message, data2, data1):
     print(data1, data2)
     return data1, data2
 
-
-#def MoreStep(message, user_message, message_need):
-    #user_message = bot.send_message(message.chat.id, message_need)
-    #MoreStep_Tranzit()
-    #MoreStep_FinalData
-
-#def MoreStep_Tranzit(message, message_need1):
-    #Data1 = bot.send_message(message.chat.id, message_need1)
-    #bot.register_next_step_handler(Data1, MoreStep_FinalData)
-
-#def MoreStep_FinalData(message, message_need2):
-    #Data2 = bot.send_message(message.chat.id, message_need2)
-
-
-#def start(message):
-    #msg = bot.send_message(message.chat.id, 'Введите первое значение')
-    #bot.register_next_step_handler(msg, start_2)
-
-
-#def start_2(message):
-   # msg = bot.send_message(message.chat.id, 'Введите второе значение')
-    #bot.register_next_step_handler(msg, start_3, message.text)
-
-
-#def start_3(message, value):
-    #print(message.text, value)
-
 bot.polling(none_stop=True)
