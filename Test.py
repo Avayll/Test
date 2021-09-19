@@ -1,18 +1,20 @@
+from re import X
 import telebot
+from telebot.types import Message
 #import random
 token = "1976579476:AAErpiOR1KSnBUedtHsEOl5xaVrNSrc-XNM"
 
 bot = telebot.TeleBot(token)
 
-HELP = '''Приветствую, чтобы создать задачу скажите "/Создать задачу"
+HELP = '''Приветствую, чтобы создать задачу скажите "/Создать"
 Если хотите посмотреть задачу то скажите "/Посмотреть"
-Если хотите получить рандомную задачу себе на сегодня то напишите " /Хочу рандомную задачу"'''
+Если хотите получить рандомную задачу себе на сегодня то напишите "/random"
+Если хотите очистить список задач на какую либо дату напишите "/Удалить"'''
 
 BOT_CONFIG = {
     "Tasks" : {
-        "Сегодня" : []
-    },
-    "RandomTasks" : ["RickRoll"]
+        "Сегодня" : ["123", "поесть", "посрать"]
+    }
 }
 
 
@@ -23,45 +25,62 @@ def Welcome(message):
 
 @bot.message_handler(commands=["Посмотреть", "Показать"])
 def show(message):
-    message_need1 = "На какую дату хотите узнать задачу?"
-    MoreStep(message, message_need1)
-    # if data1 in BOT_CONFIG["Tasks"]:
-    #     for FinalTasks in 
-            #bot.send_message(message.chat.id, FinalTasks)
-    
+    show_message = bot.send_message(message.chat.id, "На какую дату вы хотите посмотреть задачи?")
+    bot.register_next_step_handler(show_message, show1)
+
+def show1(message):
+    date = message.text
+    show_message = bot.send_message(message.chat.id, "Принято")
+    show_func(show_message, date)
+
+def show_func(message, date):
+    if date in BOT_CONFIG["Tasks"]:
+        acum = "\n- ".join(BOT_CONFIG["Tasks"][date])
+        if "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLxb0XwjhqM_RLETkiOkUZrEE8K-fP3V-p&index=2" in acum:
+            bot.send_video(message.chat.id, 'https://i.imgflip.com/1mfn7l.gif', None, 'Never Gonna Give you up')
+        else:
+            bot.send_message(message.chat.id, "- " + acum)
+    elif date not in BOT_CONFIG["Tasks"]:
+        bot.send_message(message.chat.id, "Извините, задач на такую дату нет")
+
+@bot.message_handler(commands=["random"])
+def RickRoll(Ricky):
+    Ricky = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLxb0XwjhqM_RLETkiOkUZrEE8K-fP3V-p&index=2"
+    BOT_CONFIG["Tasks"]["Сегодня"].append(Ricky)
+
+@bot.message_handler(commands=["Удалить"])
+def delete(message):
+    delete_message = bot.send_message(message.chat.id, "На какую дату хотите очистить список?")
+    bot.register_next_step_handler(delete_message, delete1)
+
+def delete1(message):
+    delete_answer = message.text
+    if delete_answer in BOT_CONFIG["Tasks"]:
+        del BOT_CONFIG["Tasks"][delete_answer]
+        BOT_CONFIG["Tasks"][delete_answer] = []
+    else:
+        bot.send_message(message.chat.id, "Такой даты не существует в списке.")
+
 @bot.message_handler(commands=["Создать"])
 def add(message):
-    data1 = ""
-    data2 = ""
-    message_need1 = "На какое число хотите задать задачу?"
-    message_need2 = "А какую задачу?"
-    MoreStep(message, message_need1, message_need2, data1, data2)
-    date = data1
-    task = data2
-    AddFunc(date, task)
+    first_message = bot.send_message(message.chat.id, "На какое число хотите создать задачу?")
+    bot.register_next_step_handler(first_message, tranzit)
+
+def tranzit(message):
+    first_message = message.text
+    second_name = bot.send_message(message.chat.id, "А какую задачу?")
+    bot.register_next_step_handler(second_name, tranzit1, first_message)
+
+def tranzit1(message, first_message):
+    second_name = message.text
+    print(first_message, second_name)
+    AddFunc(first_message, second_name)
 
 def AddFunc(date, task):
     if date in BOT_CONFIG["Tasks"]:
         BOT_CONFIG["Tasks"][date].append(task)
     else:
         BOT_CONFIG["Tasks"][date] = [task]
-
-
-def MoreStep(message, message_need1, message_need2, data1, data2):
-    data1 = ""
-    data2 = ""
-    task1 = bot.send_message(message.chat.id, message_need1)
-    bot.register_next_step_handler(task1, MoreStep1, message_need2)
-    return data1, data2
-
-def MoreStep1(message, message_need2):
-    data2 = message.text
-    data1 = bot.send_message(message.chat.id, message_need2)
-    bot.register_next_step_handler(message, MoreStep2, data1, data2)
-
-def MoreStep2(message, data2, data1):
-    data2 = message.text
-    print(data1, data2)
-    return data1, data2
+    print(BOT_CONFIG["Tasks"][date])
 
 bot.polling(none_stop=True)
