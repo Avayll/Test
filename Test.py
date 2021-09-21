@@ -1,15 +1,11 @@
 from re import X
 import telebot
-from telebot.types import Message
+from telebot.types import InlineKeyboardMarkup, Message
+from telebot import types
 #import random
 token = "1976579476:AAErpiOR1KSnBUedtHsEOl5xaVrNSrc-XNM"
 
 bot = telebot.TeleBot(token)
-
-HELP = '''Приветствую, чтобы создать задачу скажите "/Создать"
-Если хотите посмотреть задачу то скажите "/Посмотреть"
-Если хотите получить рандомную задачу себе на сегодня то напишите "/random"
-Если хотите очистить список задач на какую либо дату напишите "/Удалить"'''
 
 BOT_CONFIG = {
     "Tasks" : {
@@ -17,16 +13,39 @@ BOT_CONFIG = {
     }
 }
 
-
-
 @bot.message_handler(commands=["start"])
 def Welcome(message):
-    bot.send_message(message.chat.id, HELP)
 
-@bot.message_handler(commands=["Посмотреть", "Показать"])
-def show(message):
-    show_message = bot.send_message(message.chat.id, "На какую дату вы хотите посмотреть задачи?")
-    bot.register_next_step_handler(show_message, show1)
+    HELP = 'Приветствую вас, это бот задачник, что вы хотите сделать?'
+    #Создаем переменную markup_inline = types.InlineKeyboardMarkup()
+    #И уже с помощью команд под ней создаем кнопки с колбек датой и текстом на кнопке
+    markup_inline = types.InlineKeyboardMarkup()
+    button_create = types.InlineKeyboardButton(text="Создать задачу", callback_data="create")
+    button_delete = types.InlineKeyboardButton(text="Удалить список задач", callback_data="delete")
+    button_show = types.InlineKeyboardButton(text="Показать список задач", callback_data="show")
+    button_random = types.InlineKeyboardButton(text="Секретная команда", callback_data="random")
+
+    #А вот тут вставляем эти кнопки в переменную markup_inline чтобы они были, без строк ниже кнопок не будет
+    #Тем более ниже сообщение на которое инлайн кнопки прикрепятся, а в параметрах этого сообщения надо как раз таки вставить переменную с кнопками
+    markup_inline.add(button_create, button_delete, button_random, button_show)
+    bot.send_message(message.chat.id, HELP, 
+        reply_markup = markup_inline
+    )
+
+@bot.callback_query_handler(func = lambda call: True)
+def MainCall(call):
+    if call.data == "show":
+        #Функция чтобы показать список
+        show_message = bot.send_message(call.message.chat.id, "На какую дату вы хотите посмотреть задачи?")
+        bot.register_next_step_handler(show_message, show1)
+    elif call.data == "random":
+        RickRoll()
+    elif call.data == "create":
+        add(call)
+    elif call.data == "delete":
+        delete(call)
+    else:
+        bot.send_message(call.message.chat.id, "Ошибка")
 
 def show1(message):
     date = message.text
@@ -43,14 +62,14 @@ def show_func(message, date):
     elif date not in BOT_CONFIG["Tasks"]:
         bot.send_message(message.chat.id, "Извините, задач на такую дату нет")
 
-@bot.message_handler(commands=["random"])
-def RickRoll(Ricky):
+#Секретная команда
+def RickRoll():
     Ricky = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLxb0XwjhqM_RLETkiOkUZrEE8K-fP3V-p&index=2"
     BOT_CONFIG["Tasks"]["Сегодня"].append(Ricky)
 
-@bot.message_handler(commands=["Удалить"])
-def delete(message):
-    delete_message = bot.send_message(message.chat.id, "На какую дату хотите очистить список?")
+#Удаляющая функция
+def delete(call):
+    delete_message = bot.send_message(call.message.chat.id, "На какую дату хотите очистить список?")
     bot.register_next_step_handler(delete_message, delete1)
 
 def delete1(message):
@@ -61,9 +80,9 @@ def delete1(message):
     else:
         bot.send_message(message.chat.id, "Такой даты не существует в списке.")
 
-@bot.message_handler(commands=["Создать"])
-def add(message):
-    first_message = bot.send_message(message.chat.id, "На какое число хотите создать задачу?")
+#Создающая функция
+def add(call):
+    first_message = bot.send_message(call.message.chat.id, "На какое число хотите создать задачу?")
     bot.register_next_step_handler(first_message, tranzit)
 
 def tranzit(message):
