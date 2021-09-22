@@ -1,8 +1,7 @@
-from re import X
 import telebot
 from telebot.types import InlineKeyboardMarkup, Message
 from telebot import types
-#import random
+
 token = "1976579476:AAErpiOR1KSnBUedtHsEOl5xaVrNSrc-XNM"
 
 bot = telebot.TeleBot(token)
@@ -35,9 +34,7 @@ def Welcome(message):
 @bot.callback_query_handler(func = lambda call: True)
 def MainCall(call):
     if call.data == "show":
-        #Функция чтобы показать список
-        show_message = bot.send_message(call.message.chat.id, "На какую дату вы хотите посмотреть задачи?")
-        bot.register_next_step_handler(show_message, show1)
+        show(call)
     elif call.data == "random":
         RickRoll()
     elif call.data == "create":
@@ -47,11 +44,16 @@ def MainCall(call):
     else:
         bot.send_message(call.message.chat.id, "Ошибка")
 
+#ФФункция показывающая список
+def show(call):
+    show_message = bot.send_message(call.message.chat.id, "На какую дату вы хотите посмотреть задачи?")
+    bot.register_next_step_handler(show_message, show1)
+
 def show1(message):
     date = message.text
     show_message = bot.send_message(message.chat.id, "Принято")
     show_func(show_message, date)
-
+    
 def show_func(message, date):
     if date in BOT_CONFIG["Tasks"]:
         acum = "\n- ".join(BOT_CONFIG["Tasks"][date])
